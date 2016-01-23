@@ -8,7 +8,7 @@ from settings import config
 from urls import url_patterns
 
 application_settings = {
-    'cookie_secret': config.cookie.secret,
+   # 'cookie_secret': config.cookie.secret,
     'xsrf_cookies': False,
     'login_url': '/',
 }

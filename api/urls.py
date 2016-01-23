@@ -7,5 +7,6 @@ from handlers import *
 
 url_patterns = [
     # admin overview
-    (r"/victor/hello?", HelloVictorHandler)
+    (r"/victor/hello?", HelloVictorHandler),
+    (r"/?", HelloVictorHandler)
 ]
