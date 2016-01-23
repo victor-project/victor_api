@@ -3,4 +3,4 @@
 
 __author__ = "tamchen"
 
-from hello import HelloVictorHandler
+config = None

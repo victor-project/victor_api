@@ -14,5 +14,5 @@ if __name__ == "__main__":
     tornado.options.parse_command_line()
     http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(options.port)
-    print 'Tornado listening on: %s' % options.port
+    print('Tornado listening on: %s' % options.port)
     tornado.ioloop.IOLoop.instance().start()

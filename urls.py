@@ -3,7 +3,7 @@
 
 __author__ = "tamchen"
 
-from handlers import *
+from handlers.hello import *
 
 url_patterns = [
     # admin overview
