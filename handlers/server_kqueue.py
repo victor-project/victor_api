@@ -6,12 +6,15 @@ __author__ = "tamchen"
 from functools import partial
 import select
 import socket
+"""
+利用Python kqueue,达到最大吞吐量
+"""
 
 
 class Server:
     def __init__(self):
         self._sock = socket.socket()
-        self._poll = select.poll()
+        self._kqueue = select.kqueue()
         self._handlers = {}
         self._fd_events = {}
 
@@ -22,13 +25,13 @@ class Server:
         sock.bind(('', 8000))
         sock.listen(100)
 
+        self.add_handler(sock.fileno(), self._accept, select.KQ_FILTER_READ)
         handlers = self._handlers
-        poll = self._poll
-        self.add_handler(sock.fileno(), self._accept, select.POLLIN)
 
         while True:
-            poll_events = poll.poll(1)
-            for fd, event in poll_events:
+            kevents = self._kqueue.control(None, 1000, 1)
+            for kevent in kevents:
+                fd = kevent.ident
                 handler = handlers.get(fd)
                 if handler:
                     handler()
@@ -42,7 +45,7 @@ class Server:
             else:
                 conn.setblocking(0)
                 fd = conn.fileno()
-                self.add_handler(fd, partial(self._read, conn), select.POLLIN)
+                self.add_handler(fd, partial(self._read, conn), select.KQ_FILTER_READ)
 
     def _read(self, conn):
         fd = conn.fileno()
@@ -53,7 +56,7 @@ class Server:
             conn.close()
             raise
         else:
-            self.add_handler(fd, partial(self._write, conn), select.POLLOUT)
+            self.add_handler(fd, partial(self._write, conn), select.KQ_FILTER_WRITE)
 
     def _write(self, conn):
         fd = conn.fileno()
@@ -74,13 +77,17 @@ class Server:
     def register(self, fd, event):
         if fd in self._fd_events:
             raise IOError("fd %s already registered" % fd)
-        self._poll.register(fd, event)
+        self._control(fd, event, select.KQ_EV_ADD)
         self._fd_events[fd] = event
 
     def unregister(self, fd):
         event = self._fd_events.pop(fd, None)
         if event is not None:
-            self._poll.unregister(fd)
+            self._control(fd, event, select.KQ_EV_DELETE)
+
+    def _control(self, fd, event, flags):
+        change_list = (select.kevent(fd, event, flags),)
+        self._kqueue.control(change_list, 0)
 
 
 Server().start()

@@ -11,7 +11,7 @@ from tornado.concurrent import run_on_executor
 from concurrent.futures import ThreadPoolExecutor
 
 class IndexHandler(tornado.web.RequestHandler):
-    # 使用多线程跑或者是使用多进程
+    # 使用多线程跑或者是使用多进程,使用线程池技术
     executor = ThreadPoolExecutor(2)
 
     @tornado.gen.coroutine
